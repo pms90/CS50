@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500&display=swap" rel="stylesheet">
+        <link href="styles.css" rel="stylesheet">
+        <title>Trivia!</title>
+        <script>
+        function choise(ans) {
+            var res = document.getElementById("result");
+            ra = document.getElementById("Amazon");
+            rh = document.getElementById("Harvard");
+            rg = document.getElementById("Google");
+            if (ans === "Harvard") {
+                console.log("Correct!");
+                res.innerHTML = 'Correct!';
+
+                rh.style.backgroundColor  = "green";
+                rg.style.backgroundColor  = "#d9edff";
+                ra.style.backgroundColor  = "#d9edff";
+            } else if (ans === "Google")  {
+                console.log("Incorrect");
+                res.innerHTML = 'Incorrect';
+
+                rh.style.backgroundColor  = "#d9edff";
+                rg.style.backgroundColor  = "red";
+                ra.style.backgroundColor  = "#d9edff";
+            } else if (ans === "Amazon")  {
+                console.log("Incorrect");
+                res.innerHTML = 'Incorrect';
+
+                rh.style.backgroundColor  = "#d9edff";
+                ra.style.backgroundColor  = "red";
+                rg.style.backgroundColor  = "#d9edff";
+            }
+        }
+        function choise2() {
+
+
+            var user_input = document.getElementById("free_answer");
+            var res2 = document.getElementById("result2");
+            ans = user_input.value;
+            console.log(ans)
+            if (ans === "42") {
+                console.log("Correct!");
+                res2.innerHTML = 'Correct!';
+                user_input.style.backgroundColor = "green";
+            } else {
+                console.log("Incorrect");
+                res2.innerHTML = 'Incorrect';
+                user_input.style.backgroundColor = "red";
+            }
+        }        </script>
+    </head>
+    <body>
+        <div class="header">
+            <h1>Trivia!</h1>
+        </div>
+
+        <div class="container">
+            <div class="section">
+                <h2>Part 1: Multiple Choice </h2>
+                <hr>
+                <h3>¿Cual es la mejor introducción a las ciencias de la computación del mundo?</h3>
+                <button id='Google' onclick="choise('Google')">Google</button>
+                <button id='Harvard' onclick="choise('Harvard')">Harvard</button>
+                <button id='Amazon' onclick="choise('Amazon')">Amazon</button>
+                <br>
+                <a id='result'></a>
+            </div>
+
+            <div class="section">
+                <h2>Part 2: Free Response</h2>
+                <hr>
+                <h3>¿Cual es la razon fundamental?</h3>
+                <input id="free_answer" type="text">
+                <button onclick="choise2()">Confrim answer</button>
+                <a id='result2'></a>
+            </div>
+        </div>
+    </body>
+</html>

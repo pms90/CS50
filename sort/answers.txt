@@ -1,0 +1,12 @@
+sort1 uses: bubble sort
+
+How do you know?: Because in the random50000 case, sort1 is the slowest algorithm, but in the sorted50000 it is in the middle and we spect O(n^2) and O(n) respectivily
+
+sort2 uses: merge sort
+
+How do you know?: Because in the random50000 and sorted50000 cases, sort2 is the fastest algorithm, and we spect O(n log(n))
+check50 cs50/labs/2023/x/sort
+sort3 uses: selection sort
+
+How do you know?: Because in the random50000 case, sort1 is the slowest algorithm, and have a similar time in sorted50000 case, and we spect O(n^2) always
+
