@@ -1,0 +1,1017 @@
+<!-- Pablo Manera 2023 -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>AutoDim</title>
+  <link rel="icon" href="ico.png">
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-gl-2.4.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-widgets-2.4.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-tables-2.4.2.min.js"></script>
+  <script type="text/javascript" src="https://cdn.bokeh.org/bokeh/release/bokeh-mathjax-2.4.2.min.js"></script>
+
+  <script type="text/javascript">
+      Bokeh.set_log_level("info");
+  </script>
+
+  <link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />
+  <script defer src="https://pyscript.net/alpha/pyscript.js"></script>
+
+<py-env>
+    - numpy==1.22.3
+
+    - bokeh
+</py-env>
+  <!--<link rel="stylesheet" href="https://pyscript.net/alpha/pyscript.css" />-->
+  <!-- <script defer src="https://pyscript.net/alpha/pyscript.js"></script> -->
+</head>
+
+<style>
+.content {
+  max-width: 800px;
+  margin: auto;
+}
+button{
+margin-left: 46%;
+margin-top: 30px;
+border: 2px solid #535353;
+padding: 10px;
+border-radius: 10px;
+/* font-size: 110% */
+}
+button:hover{
+background-color: #f7f7f7;
+}
+#footer {
+    position: fixed;
+    height: 20px;
+    /* background-color: red; */
+    bottom: 4px;
+    left: 15px;
+    /* right: 0px; */
+    margin-bottom: 0px;
+    font-size: 62%;
+    color: #767676;
+}
+</style>
+
+<body>
+  <div class="content">
+    <div></div>
+    <!-- <input type="text" id="test-input"/> -->
+    <div id="lineplot"></div>
+    <div id="myplot"></div>
+    <textarea name="textarea" id="test-input2" style="width:800px;height:250px;background-color: #f7f7f7;">
+
+      Pegar aquí coordenadas obtenidas del comando "LIST".
+    </textarea>
+    <br>
+    <button id="submit-button" type="submit" pys-onClick="AutoDims"><b> Medir </b></button>
+    <div id="test-output"></div>
+
+    <div id="footer">
+      <!-- <center> -->
+      Copyright © 2023 Pablo Manera (CC BY 4.0)
+      <br>
+      <!-- pablo.manera@gmail.com -->
+    <!-- </center> -->
+    </div>
+  </div>
+
+
+
+<!--
+<py-script>
+
+  from js import console
+  import numpy as np
+  def my_function(*args, **kwargs):
+
+      #print('args:', args)
+      #print('kwargs:', kwargs)
+
+      console.log(f'args: {args}')
+      console.log(f'kwargs: {kwargs}')
+
+      text = Element('test-input2').element.value
+
+      #print('text:', text)
+      console.log(f'text: {text}')
+
+      Element('test-output').element.innerText = text
+
+</py-script> -->
+
+<py-script output="lineplot">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+rot_l = []
+aux = 0
+Xmax, Xmin = 0, 0
+Xlabel,Ylabel = 0, 0
+
+import numpy as np
+
+def decimal_degree_2_gms_str(angu_gra):
+  gra = int(angu_gra)
+  min = int((angu_gra-gra)*60)
+  seg = ( (angu_gra-int(angu_gra))*60 - min ) * 60
+  gra = "{:3.0f}".format(gra)
+  min = "{:2.0f}".format(min)
+  seg = "{:2.0f}".format(seg)
+
+  if seg=="{:2.0f}".format(60):
+    min=str(int(min)+1)
+    seg='0'  
+    
+  if min=="{:2.0f}".format(60):
+        gra=str(int(gra)+1)
+        min='0'
+
+
+#   if gra=="{:3.0f}".format(89) and "{:2.0f}".format(59) and "{:2.0f}".format(60):
+#     gra=str(int(gra)+1)
+#     min='0'
+#     seg='0'
+
+  out = str(str(gra)+' º '+str(min)+" ' "+str(seg)+' "')
+
+  # out = str(str(gra)+' º '+str(min)+" '")
+  return out
+
+def isInternal(a,b,c):
+
+  aX = float(a[0])
+  aY = float(a[1])
+  bX = float(b[0])
+  bY = float(b[1])
+  cX = float(c[0])
+  cY = float(c[1])
+  M = (cY-aY)/(cX-aX)
+  bY_ref = (M*(bX-aX)+aY)
+
+
+  if cY > aY and cX>aX :
+      if bY>bY_ref: return False,1
+
+
+  if cY>aY and cX< aX :
+      if bY< bY_ref: return False,2
+
+
+  if cY < aY and cX > aX :
+      if bY>bY_ref: return False,3
+
+
+  if cY < aY and cX < aX :
+      if bY < bY_ref: return False,4
+
+
+  if cY==aY and cX > aX:
+      if bY>aY: return False,5
+
+
+  if cY==aY and cX < aX:
+      if bY < aY: return False,6
+
+
+  if cX==aX and cY>aY:
+      if bX < aX: return False,7
+
+
+  if cX==aX and cY < aY:
+      if bX>aX: return False,8
+
+  return True,0
+
+
+
+def AutoDims(*args, **kwargs):
+
+  <!-- document.getElementById("myplot").remove()
+  create = document.createElement('div');
+  create.setAttribute("id", "myplot"); -->
+
+  global coors_str_list, Xtext_l, Ytext_l, text, rot_l
+
+  pol_data = Element('test-input2').element.value
+  <!-- Out: -->
+  <!-- Element('test-output').element.innerText = text -->
+
+  print('Ingrese coordenadas obtenidas del comando "LIST", luego presione Enter dos veces:')
+  print('')
+  print('')
+
+  # ----------------------------------------------------------------------
+  # Ingreso de datos
+  # ----------------------------------------------------------------------
+
+  coors_str_list = pol_data.split('\n')
+
+  print(coors_str_list)
+
+  # ----------------------------------------------------------------------
+  # Preproceso de datos
+  # ----------------------------------------------------------------------
+  remover = []
+  for i in range(len(coors_str_list)):
+      if 'X=' not in coors_str_list[i]:
+          remover.append(coors_str_list[i])
+  for re in remover:
+      coors_str_list.remove(re)
+
+  allow = ['0','1','2','3','4','5','6','7','8','9',' ','.','-']
+  remove_list = []
+  for i in range(len(coors_str_list)):
+      for ch in coors_str_list[i]:
+          if ch not in allow:
+              remove_list.append(ch)
+
+  for i in range(len(coors_str_list)):
+      for ch in remove_list:
+          coors_str_list[i] = coors_str_list[i].replace(ch,'')
+      coors_str_list[i] = " ".join(coors_str_list[i].split())
+      # coors_str_list[i] = coors_str_list[i].replace('  ',' ').replace('   ',' ')
+
+  for i in range(len(coors_str_list)):
+      coors_str_list[i] = coors_str_list[i].split(' ')
+
+
+  # Eliminar coordenadas repetidas (a veces ocurre mas de una vez)
+  j = 0
+  while True:
+      del_index_list = []
+      for i in range(len(coors_str_list))[j+1:]:
+          if coors_str_list[i] == coors_str_list[j]:
+              del_index_list.append(i)
+              #print(del_index_list)
+      restar = 0
+      for d in del_index_list:
+          del coors_str_list[d-restar]
+          restar += 1
+      j += 1
+      if j >= len(coors_str_list): break
+
+
+
+
+  # ----------------------------------------------------------------------
+  # Identificar sentido de giro
+  # ----------------------------------------------------------------------
+  clockwise = None  # boolean
+
+  northern_index = 0
+  Ycoors = [coor[1] for coor in coors_str_list]
+  northern_Ycoor = max(Ycoors)
+  northern_index = Ycoors.index(northern_Ycoor)
+
+
+  extended = coors_str_list[-1:]+coors_str_list+coors_str_list[0:1]
+  northern_index += 1
+
+
+  previous = extended[northern_index-1]
+  northern = extended[northern_index]
+  next = extended[northern_index+1]
+
+  Xpre = float(previous[0])
+  Ypre = float(previous[1])
+  Xnor = float(northern[0])
+  Ynor = float(northern[1])
+  Xnex = float(next[0])
+  Ynex = float(next[1])
+
+  # Evaluar sentido de giro
+  if (Xnex-Xnor)!=0 :
+      Minv = (Xnor-Xnex)/(Ynor-Ynex)
+      Xinterpolated = Xnex + Minv*(Ypre-Ynex)
+      if Xpre < Xinterpolated:
+          clockwise = True
+      else:
+          clockwise = False
+  if (Xnex-Xnor)==0 :
+      if Xpre < Xnex: clockwise = True
+      if Xpre < Xnex: clockwise = True
+
+
+  if not clockwise:
+      coors_str_list = coors_str_list[::-1]
+
+
+
+  # ----------------------------------------------------------------------
+  # Calculo de distancias y angulos
+  # ----------------------------------------------------------------------
+
+  dist_list = []
+  angu_list = []
+  angu_gra_list = []
+  Y = []
+  X = []
+  Yindex = []
+
+  # Distancias
+
+  for i in range(len(coors_str_list))[:-1]:
+      x1 = float(coors_str_list[i][0])
+      x2 = float(coors_str_list[i+1][0])
+      y1 = float(coors_str_list[i][1])
+      y2 = float(coors_str_list[i+1][1])
+      Y.append(y1)
+      X.append(x1)
+      Yindex.append(i)
+      dx = x2-x1
+      dy = y2-y1
+      dist = (dx**2+dy**2)**(0.5)
+      dist_list.append(dist)
+
+  x1 = float(coors_str_list[-1][0])
+  x2 = float(coors_str_list[0][0])
+  y1 = float(coors_str_list[-1][1])
+  y2 = float(coors_str_list[0][1])
+  Y.append(y1)
+  X.append(x1)
+  Yindex.append((Yindex[-1]+1))
+  dx = x1-x2
+  dy = y1-y2
+  dist = (dx**2+dy**2)**(0.5)
+  dist_list.append(dist)
+
+  # Angulos
+
+  for i in range(len(coors_str_list))[:-2]:
+      x1 = float(coors_str_list[i][0])
+      x2 = float(coors_str_list[i+1][0])
+      x3 = float(coors_str_list[i+2][0])
+      y1 = float(coors_str_list[i][1])
+      y2 = float(coors_str_list[i+1][1])
+      y3 = float(coors_str_list[i+2][1])
+      xA = x1-x2
+      xB = x3-x2
+      yA = y1-y2
+      yB = y3-y2
+      producto_escalar = xA*xB+yA*yB
+      modA = (xA**2+yA**2)**(0.5)
+      modB = (xB**2+yB**2)**(0.5)
+      producto_modulos = modA*modB
+      co = producto_escalar/producto_modulos
+      angu = np.arccos(co)
+      angu_gra = angu*(360/(2*np.pi))
+      angu_gra_list.append(angu_gra)
+
+
+  # anteultimo caso
+  x1 = float(coors_str_list[-2][0])
+  x2 = float(coors_str_list[-1][0])
+  x3 = float(coors_str_list[0][0])
+  y1 = float(coors_str_list[-2][1])
+  y2 = float(coors_str_list[-1][1])
+  y3 = float(coors_str_list[0][1])
+  xA = x1-x2
+  xB = x3-x2
+  yA = y1-y2
+  yB = y3-y2
+  producto_escalar = xA*xB+yA*yB
+  modA = (xA**2+yA**2)**(0.5)
+  modB = (xB**2+yB**2)**(0.5)
+  producto_modulos = modA*modB
+  co = producto_escalar/producto_modulos
+  angu = np.arccos(co)
+  angu_gra = angu*(360/(2*np.pi))
+  angu_gra_list.append(angu_gra)
+
+
+  # ultimo caso
+  x1 = float(coors_str_list[-1][0])
+  x2 = float(coors_str_list[0][0])
+  x3 = float(coors_str_list[1][0])
+  y1 = float(coors_str_list[-1][1])
+  y2 = float(coors_str_list[0][1])
+  y3 = float(coors_str_list[1][1])
+  xA = x1-x2
+  xB = x3-x2
+  yA = y1-y2
+  yB = y3-y2
+  producto_escalar = xA*xB+yA*yB
+  modA = (xA**2+yA**2)**(0.5)
+  modB = (xB**2+yB**2)**(0.5)
+  producto_modulos = modA*modB
+  co = producto_escalar/producto_modulos
+  angu = np.arccos(co)
+  angu_gra = angu*(360/(2*np.pi))
+  angu_gra_list.append(angu_gra)
+
+  Ymax = max(Y)
+  Ymin = min(Y)
+  Xmax = max(X)
+  Xmin = min(X)
+
+
+  # def supplementary(ang):
+  #     angu_gra_list[i+1] = 360 - abs(angu_gra_list[i+1])
+
+
+
+  boolean = True
+
+  # Ultimo caso
+  isIn,caso = isInternal(coors_str_list[-1],coors_str_list[0],coors_str_list[1])
+  if isIn==True:
+      angu_gra_list[-1] = 360 - angu_gra_list[-1]
+
+
+  # Hacer que los angulos sean todos internos o todos exernos
+  for i in range(len(coors_str_list))[:-2]:
+      isIn,caso = isInternal(coors_str_list[i],coors_str_list[i+1],coors_str_list[i+2])
+      if isIn==True:
+          angu_gra_list[i] = 360 - angu_gra_list[i]
+
+
+  # Anteultimo caso
+  isIn,caso = isInternal(coors_str_list[-2],coors_str_list[-1],coors_str_list[0])
+  if isIn==True:
+      angu_gra_list[-2] = 360 - angu_gra_list[-2]
+
+
+
+
+
+  for an in angu_gra_list:
+     # print(an)
+     angu_str = decimal_degree_2_gms_str(an)
+     angu_list.append(angu_str)
+
+
+
+
+
+
+
+
+  # ----------------------------------------------------------------------
+  # Print()
+  # ----------------------------------------------------------------------
+
+  bloque = []
+
+  print('')
+  print('       Lado[m]   Angulo[gra]')
+  print('')
+  VN_flag = 0
+  aux = 0
+  for i in range(len(angu_list)):
+      if i+1 == Y.index(Ymax):
+          bloque.append('   '+str("{:10.2f}".format(dist_list[i])).replace('.',','))
+          aux +=1
+          bloque.append('            '+angu_list[i]+'    < -- Vértice Norte')
+          VNi = aux
+          aux +=1
+          VN_flag = 1
+
+      else:
+          if (Y.index(Ymax)==0) and (i==len(angu_list)-1) and (VN_flag==0):
+              bloque.append('   '+str("{:10.2f}".format(dist_list[i])).replace('.',','))
+              aux +=1
+              bloque.append('            '+angu_list[i]+'    < -- Vertice Norte')
+              VNi = aux
+              aux +=1
+          else:
+              bloque.append('   '+str("{:10.2f}".format(dist_list[i])).replace('.',','))
+              aux +=1
+              bloque.append('            '+angu_list[i])
+              aux +=1
+
+
+
+
+  bloque_A = bloque[:VNi]
+  bloque_B = bloque[VNi:]
+
+  bloque_print = []
+  for blo in bloque_B:
+      # print(blo)
+      bloque_print.append(blo)
+  # print('')
+  for blo in bloque_A:
+      # print(blo)
+      bloque_print.append(blo)
+
+  print('')
+
+  bloque_print.reverse()
+
+  aux = 1
+  print(str("{:2.0f}".format(float(aux))+')'),bloque_print[-1])
+  aux += 1
+  for i in range(len(bloque_print))[0:-1]:
+      if i%2 == 0:
+          print(bloque_print[i])
+      else:
+          print(str("{:2.0f}".format(float(aux))+')'),bloque_print[i])
+          aux += 1
+
+
+
+
+  print('')
+  print('')
+  print('')
+  print('')
+
+
+
+
+  # ----------------------------------------------------------------------
+  # Grafico de poligono
+  # ----------------------------------------------------------------------
+
+
+
+
+
+  Text_size = 8.5
+
+
+  Xtext_l = []
+  Ytext_l = []
+  text = []
+
+  YY = (Ymax-Ymin)*0.05
+  XX = (Xmax-Xmin)*0.05
+  U = (XX**2+YY**2)**0.5
+
+  Xcen = (Xmax+Xmin)/2
+  Ycen = (Ymax+Ymin)/2
+
+  # ----------------------------------------------------------------------
+  # Distancias text y poligono
+  # ----------------------------------------------------------------------
+
+  for i in range(len(coors_str_list))[:-1]:
+      X1 = float(coors_str_list[i][0])
+      Y1 = float(coors_str_list[i][1])
+      X2 = float(coors_str_list[i+1][0])
+      Y2 = float(coors_str_list[i+1][1])
+
+      tita = np.arctan2(Y1-Y2,X1-X2)
+
+
+
+      rot = np.arctan((Y2-Y1)/(X2-X1))#*(360/(2*np.pi))
+      Xtext = (X1+X2)/2 #- U*np.cos(tita+np.pi/2) /2
+      Ytext = (Y1+Y2)/2 #- U*np.sin(tita+np.pi/2) /2
+
+      # # Evitar superposiciones
+      # neat_plot = False
+      # while neat_plot==False:
+      #     aux = 0
+      #     for xt,yt in zip(Xtext_l,Ytext_l):
+      #         if ((Xtext-xt)**2+(Ytext-yt)**2) < 6*(XX**2+YY**2):
+      #             Xtext += U*np.cos(tita+np.pi/2)
+      #             Ytext += U*np.sin(tita+np.pi/2)
+      #             aux = 1
+      #     if aux==0: neat_plot = True
+
+      <!-- plt.arrow((X1+X2)/2,(Y1+Y2)/2,Xtext-(X1+X2)/2,Ytext-(Y1+Y2)/2,alpha=0.1)
+      plt.text( Xtext,
+                  Ytext,
+                  round(dist_list[i]*100)/100,
+                  rotation=rot,
+                  bbox=dict(facecolor='#ebe39b', alpha=0.5,edgecolor='none',pad=1),
+                  ha='center', va='center',size=Text_size) -->
+      Xtext_l.append(Xtext)
+      Ytext_l.append(Ytext)
+      text.append(str("{:1.2f}".format(dist_list[i])).replace('.',','))  #str("{:1.3f}".format(dist_list[i]))  str(round(dist_list[i]*100)/100)
+      rot_l.append(rot)
+
+  # Ultimo caso
+  X1 = float(coors_str_list[0][0])
+  Y1 = float(coors_str_list[0][1])
+  X2 = float(coors_str_list[-1][0])
+  Y2 = float(coors_str_list[-1][1])
+
+  tita = np.arctan2(Y1-Y2,X1-X2)
+
+  <!-- plt.plot([X1,X2],[Y1,Y2],'-',color='black', alpha=0.8) -->
+
+  rot = np.arctan((Y2-Y1)/(X2-X1))#*(360/(2*np.pi))
+  Xtext = (X1+X2)/2 #- U*np.cos(tita+np.pi/2)/2
+  Ytext = (Y1+Y2)/2 #- U*np.sin(tita+np.pi/2)
+  <!-- plt.arrow((X1+X2)/2,(Y1+Y2)/2,Xtext-(X1+X2)/2,Ytext-(Y1+Y2)/2,alpha=0.1)
+  plt.text( Xtext,
+              Ytext,
+              round(dist_list[-1]*100)/100,
+              rotation=rot,
+              bbox=dict(facecolor='#ebe39b', alpha=0.5,edgecolor='none',pad=1),
+              ha='center', va='center',size=Text_size) -->
+  Xtext_l.append(Xtext)
+  Ytext_l.append(Ytext)
+  text.append(str("{:1.2f}".format(dist_list[-1])).replace('.',','))
+  rot_l.append(rot)
+
+
+
+  # Separar grafico en dos cuando el numero de vertices es grande (uno
+  # para distancias y otro para Angulos).
+  MaxVertex = 8
+  if len(coors_str_list)>MaxVertex:
+
+
+      Xlabel = min(Xtext_l)
+      Ylabel = max(Ytext_l)+U
+      <!-- plt.text( Xlabel, Ylabel,
+              'Distancia Lineal',
+              bbox=dict(facecolor='#ebe39b', alpha=0.5,edgecolor='none',pad=2),
+              va='center',size=Text_size)
+
+      plt.gca().set_aspect('equal', adjustable='box')
+      plt.axis('off')
+      plt.show() -->
+
+      for i in range(len(coors_str_list))[:-1]:
+          X1 = float(coors_str_list[i][0])
+          Y1 = float(coors_str_list[i][1])
+          X2 = float(coors_str_list[i+1][0])
+          Y2 = float(coors_str_list[i+1][1])
+          <!-- plt.plot([X1,X2],[Y1,Y2],'-',color='black', alpha=0.8) -->
+      X1 = float(coors_str_list[0][0])
+      Y1 = float(coors_str_list[0][1])
+      X2 = float(coors_str_list[-1][0])
+      Y2 = float(coors_str_list[-1][1])
+      <!-- plt.plot([X1,X2],[Y1,Y2],'-',color='black', alpha=0.8) -->
+
+
+
+
+
+
+  # ----------------------------------------------------------------------
+  # Angulos text
+  # ----------------------------------------------------------------------
+
+
+  # Primer Caso
+  Xa = float(coors_str_list[-1][0])
+  Ya = float(coors_str_list[-1][1])
+  Xc = float(coors_str_list[1][0])
+  Yc = float(coors_str_list[1][1])
+
+  X0 = float(coors_str_list[0][0])
+  Y0 = float(coors_str_list[0][1])
+
+
+  tita_a = np.arctan2((Y0-Ya),(X0-Xa))   # np.arctan2(Y,X)
+  #if tita_a < 0: tita_a = 2*np.pi+tita_a
+  tita_c = np.arctan2((Y0-Yc),(X0-Xc))
+  #if tita_c < 0: tita_c = 2*np.pi+tita_c
+  tita = (tita_a+tita_c)/2
+  # print(tita_a*(180/np.pi),tita_c*(180/np.pi),tita*(180/np.pi))
+
+  Xtext = X0 #+ U*np.cos(tita)*2.5
+  Ytext = Y0 #+ U*np.sin(tita)*2.5
+
+  # # Evitar superposiciones
+  # neat_plot = False
+  # while neat_plot==False:
+  #     aux = 0
+  #     for xt,yt in zip(Xtext_l,Ytext_l):
+  #         if ((Xtext-xt)**2+(Ytext-yt)**2) < 6*(XX**2+YY**2):
+  #             Xtext += U*np.cos(tita)
+  #             Ytext += U*np.sin(tita)
+  #             aux = 1
+  #     if aux==0: neat_plot = True
+
+  # for xt,yt in zip(Xtext_l,Ytext_l):
+  #     if ((Xtext-xt)**2+(Ytext-yt)**2) < (XX**2+YY*2):
+  #         Xtext += U*np.cos(tita)*2.5
+  #         Ytext += U*np.sin(tita)*2.5
+
+
+
+  <!-- plt.arrow(X0,Y0,Xtext-X0,Ytext-Y0,alpha=1,color='#9bc9eb')
+  plt.text(Xtext,
+              Ytext,
+              angu_list[-1].replace(' ',''),
+              bbox=dict(facecolor='#9bc9eb', alpha=0.5,edgecolor='none',pad=1),
+              ha='center', va='center',size=Text_size) -->
+
+
+  Xtext_l.append(Xtext)
+  Ytext_l.append(Ytext)
+  text.append(str(angu_list[-1].replace(' ','')))
+
+
+  for i in range(len(coors_str_list))[1:-1]:
+
+      Xa = float(coors_str_list[i-1][0])
+      Ya = float(coors_str_list[i-1][1])
+      Xc = float(coors_str_list[i+1][0])
+      Yc = float(coors_str_list[i+1][1])
+
+      X0 = float(coors_str_list[i][0])
+      Y0 = float(coors_str_list[i][1])
+
+
+      tita_a = np.arctan2((Y0-Ya),(X0-Xa))   # np.arctan2(Y,X)
+      #if tita_a < 0: tita_a = 2*np.pi+tita_a
+      tita_c = np.arctan2((Y0-Yc),(X0-Xc))
+      #if tita_c < 0: tita_a = 2*np.pi+tita_c
+      tita = (tita_a+tita_c)/2
+      # print(tita_a*(180/np.pi),tita_c*(180/np.pi),tita*(180/np.pi))
+
+      Xtext = X0 #+ U*np.cos(tita)/2
+      Ytext = Y0 #+ U*np.sin(tita)/2
+
+
+      # # Evitar superposiciones
+      # neat_plot = False
+      # while neat_plot==False:
+      #     aux = 0
+      #     for xt,yt in zip(Xtext_l,Ytext_l):
+      #         if ((Xtext-xt)**2+(Ytext-yt)**2) < 6*(XX**2+YY**2):
+      #             Xtext += U*np.cos(tita)
+      #             Ytext += U*np.sin(tita)
+      #             aux = 1
+      #     if aux==0: neat_plot = True
+
+
+<!--
+      plt.arrow(X0,Y0,Xtext-X0,Ytext-Y0,alpha=1,color='#9bc9eb')
+      plt.text(Xtext,
+                  Ytext,
+                  angu_list[i-1].replace(' ',''),
+                  bbox=dict(facecolor='#9bc9eb', alpha=0.5,edgecolor='none',pad=1),
+                  ha='center', va='center',size=Text_size) -->
+
+      Xtext_l.append(Xtext)
+      Ytext_l.append(Ytext)
+      text.append(str(angu_list[i-1].replace(' ','')))
+
+
+
+  # Ulcimo Caso
+  Xa = float(coors_str_list[-2][0])
+  Ya = float(coors_str_list[-2][1])
+  Xc = float(coors_str_list[0][0])
+  Yc = float(coors_str_list[0][1])
+
+  X0 = float(coors_str_list[-1][0])
+  Y0 = float(coors_str_list[-1][1])
+
+
+  tita_a = np.arctan2((Y0-Ya),(X0-Xa))   # np.arctan2(Y,X)
+  #if tita_a < 0: tita_a = 2*np.pi+tita_a
+  tita_c = np.arctan2((Y0-Yc),(X0-Xc))
+  #if tita_c < 0: tita_c = 2*np.pi+tita_c
+  tita = (tita_a+tita_c)/2
+
+
+  Xtext = X0 #+ U*np.cos(tita)*2.5
+  Ytext = Y0 #+ U*np.sin(tita)*2.5
+
+  <!-- for xt,yt in zip(Xtext_l,Ytext_l):
+      if ((Xtext-xt)**2+(Ytext-yt)**2) < (XX**2+YY*2):
+          Xtext += U*np.cos(tita)*2.5
+          Ytext += U*np.sin(tita)*2.5 -->
+
+
+  <!-- plt.arrow(X0,Y0,Xtext-X0,Ytext-Y0,alpha=1,color='#9bc9eb')
+  plt.text(Xtext,
+              Ytext,
+              angu_list[-2],
+              bbox=dict(facecolor='#9bc9eb', alpha=0.5,edgecolor='none',pad=1),
+              ha='center', va='center',size=Text_size) -->
+
+  Xtext_l.append(Xtext)
+  Ytext_l.append(Ytext)
+  text.append(str(angu_list[-2]).replace(' ',''))
+
+
+  if len(coors_str_list)<=MaxVertex:
+
+      Xlabel = min(Xtext_l)
+      Ylabel = max(Ytext_l)+U
+      <!-- plt.text( Xlabel, Ylabel,
+              'Distancia Lineal',
+              bbox=dict(facecolor='#ebe39b', alpha=0.5,edgecolor='none',pad=2),
+              va='center',size=Text_size) -->
+
+
+  Xlabel = min(Xtext_l)
+  Ylabel = max(Ytext_l)+2*U
+  <!-- plt.text( Xlabel, Ylabel,
+          'Distancia Angular',
+          bbox=dict(facecolor='#9bc9eb', alpha=0.5,edgecolor='none',pad=2),
+          va='center',size=Text_size) -->
+
+
+
+
+
+  <!-- plt.gca().set_aspect('equal', adjustable='box')
+  plt.axis('off')
+  fig
+  plt.show() -->
+
+  main_plot()
+
+  <!-- return coors_str_list, Xtext_l, Ytext_l, text
+
+coors_str_list, Xtext_l, Ytext_l, text = AutoDims()
+
+fig -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- data_x = [float(co[0]) for co in coors_str_list]+[coors_str_list[0][0]]
+data_y = [float(co[1]) for co in coors_str_list]+[coors_str_list[0][1]] -->
+
+
+
+
+
+
+
+
+
+</py-script>
+
+
+<!-- <py-script id="main">
+import json
+import pyodide
+
+from js import Bokeh, console, JSON
+
+from bokeh.embed import json_item
+from bokeh.plotting import figure
+from bokeh.resources import CDN
+
+# create a new plot with default tools, using figure
+p = figure(plot_width=400, plot_height=400)
+
+# add a circle renderer with x and y coordinates, size, color, and alpha
+p.circle([1, 2, 3, 4, 5], [6, 7, 2, 4, 5], size=15, line_color="navy", fill_color="orange", fill_alpha=0.5)
+p_json = json.dumps(json_item(p, "myplot"))
+
+Bokeh.embed.embed_item(JSON.parse(p_json))
+</py-script> -->
+
+
+<py-script id="main">
+def main_plot():
+
+  data_x = [float(co[0]) for co in coors_str_list]+[coors_str_list[0][0]]
+  data_y = [float(co[1]) for co in coors_str_list]+[coors_str_list[0][1]]
+
+  import json
+  import pyodide
+
+  from js import console
+
+  from js import Bokeh, console, JSON
+
+  from bokeh.embed import json_item
+  from bokeh.plotting import figure
+  from bokeh.resources import CDN
+
+  from bokeh.models import Label
+
+  from bokeh.themes import built_in_themes
+  from bokeh.io import curdoc
+  curdoc().theme = 'dark_minimal'
+
+  <!-- from bokeh.plotting import figure, output_file, show -->
+  <!-- output_file("line.html") -->
+
+  global aux, Xmax, Xmin
+  <!-- range_right = Xmax+(Xmax-Xmin) -->
+  <!-- range_left = Xmin-(Xmax-Xmin) -->
+  <!-- x_range=(range_left, range_right) -->
+
+
+  if aux==0:
+    p = figure(width=780, height=780, active_scroll ="wheel_zoom", match_aspect = True)
+    aux += 1
+  else:
+    print('Poligono (',aux,')')
+    p = figure(width=780, height=780, active_scroll ="wheel_zoom", match_aspect = True)
+    aux += 1
+
+
+
+  p.line(data_x, data_y, line_width=2, color='#262626', alpha=1)
+  p.circle(data_x, data_y, size=6, color='#262626', alpha=1)
+
+  p.axis.visible = False
+  p.toolbar_location = None
+  p.xgrid.grid_line_color = None
+  p.ygrid.grid_line_color = None
+
+  <!-- for i in range(len(rot_l)): -->
+      <!-- rot_l[i] = rot_l[i] * 1.15 -->
+      <!-- if abs(rot_l[i]*180/np.pi) <= 45: rot_l[i] *= 1.1 -->
+      <!-- if abs(rot_l[i]*180/np.pi) > 30: rot_l[i] *= 1 -->
+      <!-- if abs(rot_l[i]*180/np.pi) >= 60: rot_l[i] *= 0.95 -->
+      <!-- if rot_l[i]*180/np.pi > 90: rot_l[i] = np.pi/2
+      if rot_l[i]*180/np.pi < 90: rot_l[i] = -np.pi/2 -->
+
+
+  <!-- p.Label(x=Xlabel, y=Ylabel, text='Distancias Lineales', background_fill_color='#ebe39b',
+                  background_fill_alpha=0.5,text_font_size='18px') -->
+
+  for i in range(len(text)):
+    if i <  int(len(text)/2):
+      mytext = Label(x=Xtext_l[i], y=Ytext_l[i], text=' '+text[i]+' ', background_fill_color='#ebe39b',
+                      background_fill_alpha=0.5, angle=rot_l[i-int(len(text)/2)], angle_units='rad',text_font_size='18px',text_align='center')
+      p.add_layout(mytext)
+    else:
+      mytext = Label(x=Xtext_l[i], y=Ytext_l[i], text=' '+text[i]+' ', background_fill_color='#9bc9eb',text_font_size='18px',
+                      background_fill_alpha=0.5)
+      p.add_layout(mytext)
+
+
+
+  p_json = json.dumps(json_item(p, "myplot",theme="dark_minimal"))
+  Bokeh.embed.embed_item(JSON.parse(p_json))
+  <!-- show(p) -->
+</py-script>
